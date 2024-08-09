@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Reminder Application</title>
+    <style>
+        body {
+            font-family:'Times New Roman', Times, serif;
+            display:flex;
+            flex-direction: column;
+            justify-content:center;
+            align-items:center;
+            height:600px;
+            width: 100%;
+            margin: 0;
+            background-color:rgb(235, 189, 149)            
+            
+        }
+
+        .container {
+            background-color: rgba(19, 237, 223, 0.571);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgb(139, 43, 43);
+            width: 300px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        select, input[type="time"], input[type="file"] {
+            padding: 10px;
+            border: 1px solid #e15e5e;
+            border-radius: 10px;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            background-color: #ff8800;
+            color: rgb(224, 235, 225);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #f46d14ea;
+        }
+
+        .reminders {
+            margin-top: 20px;
+        }
+
+        .reminder-item {
+            background-color: #d6dade;
+            padding: 10px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .background{
+            background-image: url('image.png');
+            background-size: cover;
+            background-position:center;
+            
+            
+            
+            
+        }
+    </style>
+</head>
+<body>
+    <div class="background">
+    <div class="container">
+        <h1>Time Pulse</h1>
+        <form id="reminderForm">
+            <label for="day">Select Day:</label>
+            <select id="day">
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+            </select>
+
+            <label for="time">Select Time:</label>
+            <input type="time" id="time">
+
+            <label for="activity">Select Activity:</label>
+            <select id="activity">
+                <option value="Wake up">Wake up</option>
+                <option value="Go to gym">Go to gym</option>
+                <option value="Breakfast">Breakfast</option>
+                <option value="Meetings">Meetings</option>
+                <option value="Lunch">Lunch</option>
+                <option value="Quick nap">Quick nap</option>
+                <option value="Go to library">Go to library</option>
+                <option value="Dinner">Dinner</option>
+                <option value="Go to sleep">Go to sleep</option>
+            </select>
+
+            <label for="sound">Upload Sound:</label>
+            <input type="file" id="sound" accept="audio/*">
+
+            <button type="submit">Set Reminder</button>
+        </form>
+
+        <div class="reminders" id="reminderList">
+            <h2>Reminders</h2>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        const reminderForm = document.getElementById('reminderForm');
+        const reminderList = document.getElementById('reminderList');
+
+        reminderForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const day = document.getElementById('day').value;
+            const time = document.getElementById('time').value;
+            const activity = document.getElementById('activity').value;
+            const soundFile = document.getElementById('sound').files[0];
+
+            if (!soundFile) {
+                alert("Please upload a sound file for the reminder.");
+                return;
+            }
+
+            const reminderTime = new Date();
+            const [hours, minutes] = time.split(':').map(Number);
+
+            reminderTime.setHours(hours, minutes, 0);
+
+            const now = new Date();
+
+            if (reminderTime < now) {
+                reminderTime.setDate(reminderTime.getDate() + 1);
+            }
+
+            const timeUntilReminder = reminderTime - now;
+
+            const reminderId = setTimeout(function() {
+                alert(`Time for: ${activity}`);
+                playSound(soundFile);
+                removeReminder(reminderId);
+            }, timeUntilReminder);
+
+            addReminderToList(day, time, activity, soundFile.name, reminderId);
+        });
+
+        function addReminderToList(day, time, activity, soundName, reminderId) {
+            const reminderItem = document.createElement('div');
+            reminderItem.className = 'reminder-item';
+            reminderItem.innerHTML = `
+                <span>${day} - ${time} - ${activity} (Sound: ${soundName})</span>
+                <button onclick="removeReminder(${reminderId}, this)">Cancel</button>
+            `;
+            reminderList.appendChild(reminderItem);
+        }
+
+        function removeReminder(reminderId, buttonElement = null) {
+            clearTimeout(reminderId);
+            if (buttonElement) {
+                const reminderItem = buttonElement.parentElement;
+                reminderItem.remove();
+            }
+        }
+
+        function playSound(soundFile) {
+            const audio = new Audio(URL.createObjectURL(soundFile));
+            audio.play();
+        }
+    </script>
+</body>
+</html>
